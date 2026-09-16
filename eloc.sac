@@ -40,6 +40,19 @@ int[r, d:n] oConcat (int[q, d:n] a, int[p, d:n] b) | (r == q + p){
 
 // File handling functions:
 
+File open_file_w(string filename) {
+	exists, _ = access(filename, 0);
+	can_write, _ = access(filename, 2);
+
+	if (exists && !can_write) {
+		error(-1, "File " ++ filename ++ " could not be written to.");
+	}
+
+	_, f = fopen(filename, "w");
+
+	return f;
+}
+
 File open_file_r(string filename) {
 	has_access, _ = access(filename, 1);
 
@@ -83,7 +96,7 @@ File skipline(File f) {
 
 double[n, m] read_states_2d(File file, int[2] shp) {
 	arr = genarray(shp, 0.0);
-	for (i = 1; i < shp[0]; i++) {
+	for (i = 0; i < shp[0]; i++) {
 		_, f = fscanfloat(file);
 		arr[i,0] = tod(f);
 		for (j = 1; j < shp[1]; j++) {
@@ -250,12 +263,13 @@ int main() {
 		stopRTimer(timer);
 		rt = getRTimerDbl(timer);
 		total_time += rt;
+		printf("run=%d  eloc=%.6f (%.3f ms) \n", i, E_loc, rt * 1e3);
 	}
 
 	destroyRTimer(timer);
-	printf("total runtime: " ++ tos(total_time) ++ "\n");
-	printf("average runtime: " ++ tos(total_time / tod(runs)) ++ "\n");
-    printf(" tots: %f\n", tod( tots));
+	printf("total runtime:   %.6f seconds\n", total_time);
+	printf("average runtime: %f\n", total_time / tod(runs));
+    printf("summed eloc:     %f\n", tod( tots));
 
 	return 0;
 }

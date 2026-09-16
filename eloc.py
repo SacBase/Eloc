@@ -191,18 +191,25 @@ if __name__ == "__main__":
 
     states = load_states(N, runs)
 
-    for seed in range(runs):
-        s = states[seed]
+    results = np.zeros(runs)
+    total_rt = 0
 
-        start = time.time()
-        e_naive = eloc_naive(s, bonds, W, b) / (N * 4)
-        t_naive = time.time() - start
+    for i in range(runs):
+        s = states[i]
 
         start = time.time()
         e_lookup = eloc_lookup_table(s, alpha, bonds, W, b) / (N * 4)
         t_lookup = time.time() - start
+        total_rt += t_lookup
 
         print(
-            f"seed={seed}  naive={e_naive:.6f} ({t_naive * 1e3:.3f} ms)  "
-            f"seed={seed}  lookup_table={e_lookup:.6f} ({t_lookup * 1e3:.3f} ms)"
+            f"run={i}  eloc={e_lookup:.6f} ({t_lookup * 1e3:.3f} ms)"
         )
+        
+        results[i] = e_lookup
+
+    print(f"total runtime:   {total_rt:.6f} seconds")
+    print(f"average runtime: {total_rt/runs:.6f}")
+    print(f"summed eloc:     {sum(results):.6f}")
+
+    np.savetxt(f"results/python_{N}.csv", results, fmt="%.6f", delimiter=",")
