@@ -1,5 +1,3 @@
-# ELoc
-
 # Eloc reference implementation
 
 Neural Quantum States (NQS) is a method to find the ground state (lowest energy
