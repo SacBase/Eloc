@@ -15,6 +15,9 @@ use File: {File};
 use SysErr: {fail, clear};
 use String: { strcat, tos, string};
 
+#define M 512
+#define N 256
+
 // Missing Stdlib functions:
 
 inline
@@ -172,67 +175,59 @@ int[k, 2] square_lattice_bonds(int Lx, int Ly) | (k == Lx * Ly * 2) {
 	return reshape([Lx*Ly*2, 2], oConcat(bonds_x, bonds_y));
 }
 
-// The computational functions:
-
+/*******************************************************************************
+ *
+ * The computational functions:
+ *
+ ******************************************************************************/
 inline
-double energy (double[M] activation, double gamma)
+double[M] theta (double[N] s, double[M, N] tp_W, double[M] b)
 {
-    return gamma * sum (log (activation));
+    return { [h] -> b[h] + sum (tp_W[h] * s) };
 }
 
 inline
-double[M] activation (double[M] weightedSum)
+double logpsi (double[M] theta, double gamma)
 {
-    return 2.0 * cosh(weightedSum);
-}
-
-inline
-double scalarProduct (double[n] a, double[n] b)
-{
-    return sum (a * b);
-}
-
-
-inline
-double, double[M]
-logpsi(double[N] s, double[M, N] tp_W, double[M] b, double gamma) 
-{
-	theta = {[h] -> scalarProduct(tp_W[h], s) | [h] < [M]} + b;
-	activation = activation(theta);
-	logpsi_s = energy(activation, gamma);
-
-	return (logpsi_s, theta);
+    return gamma * sum (log (2.0 * cosh (theta)));
 }
 
 inline
 double
-energyAdjustment(double[N] s, int i, int j, double[M] theta, double [N, M] W, double[M] b, double logpsi_s, double gamma) {
-	E_loc = s[i] * s[j];
-
-	if (s[i] != s[j]) {
-		delta_theta = {[h] -> 2.0 * W[i, h] * s[i] + 2.0 * W[j, h] * s[j] | [h] < [M]};
-		theta_prime = theta - delta_theta;
-		activation_prime = activation(theta_prime);
-		logpsi_s_prime = energy(activation_prime, gamma);
-		E_loc -= 2.0 * exp(logpsi_s_prime - logpsi_s);
-	}
-	return E_loc;
+elocUpdate (int i, int j, double[N] s, double[M] theta,
+            double logpsi_s, double [N, M] W, double gamma)
+{
+    eloc = s[i] * s[j];
+    if (s[i] != s[j]) {
+        theta_p = { [h] -> theta[h] - 2.0*W[i,h]*s[i] - 2.0*W[j,h]*s[j] };
+        logpsi_sp = logpsi (theta_p, gamma);
+        eloc -= 2.0 * exp (logpsi_sp  - logpsi_s);
+    }
+    return eloc;
 }
 
-double eloc_lookup_table(double[N] s, int[M, 2] bonds, double [N, M] W, double[M] b, double gamma) {
-	logpsi_s, theta = logpsi(s, transpose(W), b, gamma);
-
-	return sum({ [k] -> energyAdjustment(s, bonds[k][0], bonds[k][1], theta, W, b, logpsi_s, gamma) | [k] < [M] });
+double
+eloc_lookup_table(double[N] s, int[M, 2] bonds, double [N, M] W, double[M] b, double gamma)
+{
+    theta = theta (s, transpose(W), b);
+    logpsi_s = logpsi (theta, gamma);
+    return sum ({ [k] -> elocUpdate (bonds[k,0], bonds[k,1], s, theta, logpsi_s, W, gamma) });
 }
+
+/*******************************************************************************
+ *
+ * The main:
+ *
+ ******************************************************************************/
 
 int main() {
 	Lx = 16;
 	Ly = 16;
-	N = Lx * Ly;
+//	N = Lx * Ly;
 	alpha = 2;
 	gamma = 0.5;
 
-	M = N * alpha;
+//	M = N * alpha;
 	runs = 1000;
 
 	w_filename = "data/weights/Ising_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_J.csv";
