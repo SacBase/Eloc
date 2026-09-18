@@ -97,6 +97,12 @@ Generate random states:
 python auxiliary/generate_states.py
 ```
 
+Either generate random RBM data or use pre-trained data:
+```
+python auxiliary/generate_RBM.py
+python auxiliary/reformat_Ising.py
+```
+
 ## Running files
 
 ### Python

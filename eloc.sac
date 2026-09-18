@@ -113,17 +113,13 @@ double[n, m] read_states_2d(File file, int[2] shp) {
 	return arr;
 }
 
-double[m] read_states_1d(File file, int n) {
-	arr = genarray([n], 0.0);
-	_, f = fscanfloat(file);
-	arr[0] = tod(f);
-	for (i = 1; i < n; i++) {
-		file = skipline(file);
-		_, f = fscanfloat(file);
-		arr[i] = tod(f);
+inline
+void write_results(File file, double[runs] results) {
+	for (i = 0; i < runs; i++) {
+		fprintf(file, "%f\n", results[i]);
 	}
 
-	return arr;
+	return;
 }
 
 double[m, n] scan_w(File f, int start_row, int end_row, int start_col, int end_col)
@@ -230,11 +226,11 @@ int main() {
 //	M = N * alpha;
 	runs = 1000;
 
-	w_filename = "data/weights/Ising_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_J.csv";
+	w_filename = "data/weights/weights_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_J.csv";
 	w_file = open_file_r(w_filename);
-	w = scan_w(w_file, M, M + N, 0, M);
+	w = scan_w(w_file, 0, N, 0, M);
 
-	b_filename = "data/weights/Ising_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_h.csv";
+	b_filename = "data/weights/weights_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_h.csv";
 	b_file = open_file_r(b_filename);
 	b, _ = scan_doubles(b_file, M);
 
@@ -246,7 +242,7 @@ int main() {
 	states = read_states_2d(s_file, [runs, N]);
 
 	timer = createRTimer();
-	total_time = 0.0;
+	rts = genarray([runs], 0.0);
 	tots = 0.0;
 	
 
@@ -257,14 +253,18 @@ int main() {
         tots += E_loc;
 		stopRTimer(timer);
 		rt = getRTimerDbl(timer);
-		total_time += rt;
+		rts[i] = rt;
 		printf("run=%d  eloc=%.6f (%.3f ms) \n", i, E_loc, rt * 1e3);
 	}
 
 	destroyRTimer(timer);
-	printf("total runtime:   %.6f seconds\n", total_time);
-	printf("average runtime: %f\n", total_time / tod(runs));
+	printf("total runtime:   %.6f seconds\n", sum(rts));
+	printf("average runtime: %f\n", sum(rts) / tod(runs));
     printf("summed eloc:     %f\n", tod( tots));
 
+	r_filename = "results/sac_" ++ tos(N) ++ ".csv";
+	r_file = open_file_w(r_filename);
+	write_results(r_file, rts);
+	
 	return 0;
 }

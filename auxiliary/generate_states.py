@@ -1,4 +1,3 @@
-# %%
 """Generation of random spin state configurations for local energy calculations."""
 
 import numpy as np
@@ -8,7 +7,9 @@ def random_states(N, runs, seed=0):
     return (rng.integers(low=0, high=2, size=(runs, N)) * 2 - 1).astype(np.float64)
 
 if __name__ == "__main__":
-    N = 256
+    Lx = 16
+    Ly = 16
+    N = Lx * Ly
     runs = 1000
     seed = 0
 

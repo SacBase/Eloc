@@ -161,12 +161,12 @@ def load_trained_rbm(N, alpha, data_dir="data/weights"):
     """
     M = alpha * N
     W_full = np.genfromtxt(
-        os.path.join(data_dir, f"Ising_{N}_{alpha}_ti_J.csv"), delimiter=",", dtype=np.float64
+        os.path.join(data_dir, f"weights_{N}_{alpha}_ti_J.csv"), delimiter=",", dtype=np.float64
     )
     b_full = np.genfromtxt(
-        os.path.join(data_dir, f"Ising_{N}_{alpha}_ti_h.csv"), delimiter=",", dtype=np.float64
+        os.path.join(data_dir, f"weights_{N}_{alpha}_ti_h.csv"), delimiter=",", dtype=np.float64
     )
-    W = W_full[M : M + N, :M].copy()
+    W = W_full[:N, :M].copy()
     b = b_full[:M].copy()
     return W, b
 
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     bonds = square_lattice_bonds(Lx, Ly)
     try:
         W, b = load_trained_rbm(N, alpha)
-        print(f"using trained weights from data/weights/Ising_{N}_{alpha}_ti_*.csv")
+        print(f"using trained weights from data/weights/weights_{N}_{alpha}_ti_*.csv")
     except OSError:
         W, b = random_rbm(N, alpha, seed=seed)
         print("data/weights not found -- using a random RBM instead")
@@ -192,6 +192,7 @@ if __name__ == "__main__":
     states = load_states(N, runs)
 
     results = np.zeros(runs)
+    rts = np.zeros(runs)
     total_rt = 0
 
     for i in range(runs):
@@ -207,9 +208,10 @@ if __name__ == "__main__":
         )
         
         results[i] = e_lookup
+        rts[i] = t_lookup
 
     print(f"total runtime:   {total_rt:.6f} seconds")
     print(f"average runtime: {total_rt/runs:.6f}")
     print(f"summed eloc:     {sum(results):.6f}")
 
-    np.savetxt(f"results/python_{N}.csv", results, fmt="%.6f", delimiter=",")
+    np.savetxt(f"results/python_{N}.csv", rts, fmt="%.6f", delimiter=",")
