@@ -68,49 +68,23 @@ File open_file_r(string filename) {
 	return f;
 }
 
-double[n], File scan_doubles(File f, int n) {
-	ret_arr = genarray([n], 0.0);
-	b = true;
-	for (i = 0; i < n; i++) {
-		do {
-			if (feof(f)) {
-				error(-1, "Reached end of file.\n");
-			}
+double[d:shp] scan_double(File f, int[d] shp)
+{
+	ret_arr = genarray([prod(shp)], 0.0);
 
-			if (!b) {
-				_, _ = fscanchar(f);
-			}
+	_, tmp = fscanfloat(f);
+	ret_arr[0] = tod(tmp);
 
-			b, tmp = fscanfloat(f);
-		} while (!b);
-
+	for (i = 1; i < prod(shp); i++) {
+		if (feof(f)) {
+			error(-1, "Reached end of file\n");
+		}
+		_, _ = fscanchar(f);
+		_, tmp = fscanfloat(f);
 		ret_arr[i] = tod(tmp);
 	}
-	return (ret_arr, f);
-}
 
-File skipline(File f) {
-	do {
-		_, c = fscanchar(f);
-	}
-	while (c != '\n');
-	return f;
-}
-
-double[n, m] read_states_2d(File file, int[2] shp) {
-	arr = genarray(shp, 0.0);
-	for (i = 0; i < shp[0]; i++) {
-		_, f = fscanfloat(file);
-		arr[i,0] = tod(f);
-		for (j = 1; j < shp[1]; j++) {
-			_, _ = fscanchar(file);
-			_, f = fscanfloat(file);
-			arr[i,j] = tod(f);
-		}
-		file = skipline(file);
-	}
-
-	return arr;
+	return reshape(shp, ret_arr);
 }
 
 inline
@@ -120,24 +94,6 @@ void write_results(File file, double[runs] results) {
 	}
 
 	return;
-}
-
-double[m, n] scan_w(File f, int start_row, int end_row, int start_col, int end_col)
-                 | (m == end_row - start_row && n == end_col - start_col)
-{
-	ret_arr = genarray([end_row - start_row, end_col - start_col], 0.0);
-
-	for (j = 0; j < start_row; j++) {
-		f = skipline(f);
-	}
-
-	for (i = 0; i < end_row-start_row; i++) {
-		_,   f = scan_doubles(f, start_col);
-		tmp, f = scan_doubles(f, end_col-start_col);
-		ret_arr[i] = tmp;
-		f = skipline(f);
-	}
-	return ret_arr;
 }
 
 // Random state generation functions:
@@ -203,7 +159,7 @@ elocUpdate (int i, int j, double[N] s, double[M] theta,
 }
 
 double
-eloc_lookup_table(double[N] s, int[M, 2] bonds, double [N, M] W, double[M] b, double gamma)
+eloc_lookup_table(double[N] s, int[M, 2] bonds, double[N, M] W, double[M] b, double gamma)
 {
     theta = theta (s, transpose(W), b);
     logpsi_s = logpsi (theta, gamma);
@@ -228,18 +184,17 @@ int main() {
 
 	w_filename = "data/weights/weights_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_J.csv";
 	w_file = open_file_r(w_filename);
-	w = scan_w(w_file, 0, N, 0, M);
+	w = scan_double(w_file, [N, M]);
 
 	b_filename = "data/weights/weights_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_h.csv";
 	b_file = open_file_r(b_filename);
-	b, _ = scan_doubles(b_file, M);
+	b = scan_double(b_file, [M]);
 
 	bonds = square_lattice_bonds(Lx, Ly);
 
-
 	s_filename = "data/states/states_" ++ tos(runs) ++ "x" ++ tos(N) ++ ".csv";
 	s_file = open_file_r(s_filename);
-	states = read_states_2d(s_file, [runs, N]);
+	states = scan_double(s_file, [runs, N]);
 
 	timer = createRTimer();
 	rts = genarray([runs], 0.0);
