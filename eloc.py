@@ -131,24 +131,6 @@ def square_lattice_bonds(Lx, Ly, periodic=True):
 
     return np.array(bonds_x + bonds_y, dtype=np.int64)
 
-
-def random_rbm(N, alpha, seed=0, scale=0.001):
-    """A random RBM (W, b) with the shapes eloc expects, for smoke tests
-    and benchmarking."""
-    rng = np.random.default_rng(seed)
-    M = N * alpha
-    W = rng.normal(scale=scale, size=(N, M))
-    b = rng.normal(scale=scale, size=M)
-    return W, b
-
-def random_state(N, seed=0):
-    rng = np.random.default_rng(seed)
-    return (rng.integers(low=0, high=2, size=N) * 2 - 1).astype(np.float64)
-
-def random_states(N, runs, seed=0):
-    rng = np.random.default_rng(seed)
-    return (rng.integers(low=0, high=2, size=(runs, N)) * 2 - 1).astype(np.float64)
-
 def load_trained_rbm(N, alpha, data_dir="data/weights"):
     """Load a real, trained RBM (W, b) -- a physically meaningful
     (state, W, b) input to check eloc against, not just a random one.
@@ -182,12 +164,7 @@ if __name__ == "__main__":
     seed = 0
 
     bonds = square_lattice_bonds(Lx, Ly)
-    try:
-        W, b = load_trained_rbm(N, alpha)
-        print(f"using trained weights from data/weights/weights_{N}_{alpha}_ti_*.csv")
-    except OSError:
-        W, b = random_rbm(N, alpha, seed=seed)
-        print("data/weights not found -- using a random RBM instead")
+    W, b = load_trained_rbm(N, alpha)
 
     states = load_states(N, runs)
 
@@ -198,13 +175,13 @@ if __name__ == "__main__":
     for i in range(runs):
         s = states[i]
 
-        start = time.time()
+        start = time.perf_counter()
         e_lookup = eloc_lookup_table(s, alpha, bonds, W, b) / (N * 4)
-        t_lookup = time.time() - start
+        t_lookup = time.perf_counter() - start
         total_rt += t_lookup
 
         print(
-            f"run={i}  eloc={e_lookup:.6f} ({t_lookup * 1e3:.3f} ms)"
+            f"run={i}  eloc={e_lookup:.6f} ({t_lookup * 1E3:.3f} ms)"
         )
         
         results[i] = e_lookup
