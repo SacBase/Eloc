@@ -1,6 +1,7 @@
 """Generation of random RBM for local energy calculations."""
 
 import numpy as np
+from get_cl_args import get_args
 
 def random_weights(N, alpha, seed=0, scale=0.001):
     rng = np.random.default_rng(seed)
@@ -15,11 +16,7 @@ def random_bias(N, alpha, seed=0, scale=0.001):
     return b
 
 if __name__ == "__main__":
-    Lx = 16
-    Ly = 16
-    alpha = 2
-    runs = 1000
-    seed = 0
+    Lx, Ly, alpha, _, runs, seed = get_args()
 
     N = Lx * Ly
 

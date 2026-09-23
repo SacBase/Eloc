@@ -8,12 +8,11 @@
 """
 
 import numpy as np
+from get_cl_args import get_args
 
 if __name__ == "__main__":
-	Lx = 16
-	Ly = 16
+	Lx, Ly, alpha, _, runs, _ = get_args()
 	N = Lx * Ly
-	alpha = 2
 	M = N * alpha
 
 	W_full = np.genfromtxt(f"data/weights/Ising_{N}_{alpha}_ti_J.csv", delimiter=",", dtype=np.float64)

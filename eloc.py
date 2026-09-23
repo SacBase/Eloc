@@ -26,6 +26,7 @@ Notation, matching README.md symbol-for-symbol:
 
 import os
 import time
+from auxiliary.get_cl_args import get_args
 
 import numpy as np
 from numba import njit
@@ -158,10 +159,8 @@ def load_states(N, runs, data_dir="data/states"):
     )
 
 if __name__ == "__main__":
-    Lx, Ly, alpha = 16, 16, 2
+    Lx, Ly, alpha, gamma, runs, seed = get_args()
     N = Lx * Ly
-    runs = 1000
-    seed = 0
 
     bonds = square_lattice_bonds(Lx, Ly)
     W, b = load_trained_rbm(N, alpha)

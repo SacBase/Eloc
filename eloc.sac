@@ -10,13 +10,14 @@ use FileSystem: all;
 use RuntimeError: all;
 use Benchmarking: all;
 use RTimer: all;
+use CommandLine: all;
 use Xoshiro: {xoshiro128p, srand128};
 use File: {File};
 use SysErr: {fail, clear};
-use String: { strcat, tos, string};
+use String: { strcat, tos, string, sscanf, strtof, strtoi, strstr, strdrop};
 
-#define M 512
-#define N 256
+// #define M 512
+// #define N 256
 
 // Missing Stdlib functions:
 
@@ -39,6 +40,21 @@ inline
 int[r, d:n] oConcat (int[q, d:n] a, int[p, d:n] b) | (r == q + p){
 	return {[i] -> a[i]   |        [i] < [q];
 			[i] -> b[i-q] | [q] <= [i] < [q+p]};
+}
+
+// Command line functions:
+int, int, int, float, int
+get_cl_args() {
+	args = argv();
+	i = strstr(args, " ");
+	args = strdrop(args, i);
+	Lx, args = strtoi(args, 10);
+	Ly, args = strtoi(args, 10);
+	alpha, args = strtoi(args, 10);
+	gamma, args = strtof(args);
+	runs, args = strtoi(args, 10);
+
+	return (Lx, Ly, alpha, gamma, runs);
 }
 
 // File handling functions:
@@ -173,14 +189,10 @@ eloc_lookup_table(double[N] s, int[M, 2] bonds, double[N, M] W, double[M] b, dou
  ******************************************************************************/
 
 int main() {
-	Lx = 16;
-	Ly = 16;
-//	N = Lx * Ly;
-	alpha = 2;
-	gamma = 0.5;
-
-//	M = N * alpha;
-	runs = 1000;
+	Lx, Ly, alpha, gamma, runs = get_cl_args();
+	
+	N = Lx * Ly;
+	M = N * alpha;
 
 	w_filename = "data/weights/weights_" ++ tos(N) ++ "_" ++ tos(alpha) ++ "_ti_J.csv";
 	w_file = open_file_r(w_filename);
