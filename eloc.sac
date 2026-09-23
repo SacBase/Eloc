@@ -14,7 +14,7 @@ use CommandLine: all;
 use Xoshiro: {xoshiro128p, srand128};
 use File: {File};
 use SysErr: {fail, clear};
-use String: { strcat, tos, string, sscanf, strtof, strtoi, strstr, strdrop};
+use String: { strcat, tos, string, sscanf, strtod, strtoi, strstr, strdrop};
 
 // #define M 512
 // #define N 256
@@ -43,7 +43,7 @@ int[r, d:n] oConcat (int[q, d:n] a, int[p, d:n] b) | (r == q + p){
 }
 
 // Command line functions:
-int, int, int, float, int
+int, int, int, double, int
 get_cl_args() {
 	args = argv();
 	i = strstr(args, " ");
@@ -51,7 +51,7 @@ get_cl_args() {
 	Lx, args = strtoi(args, 10);
 	Ly, args = strtoi(args, 10);
 	alpha, args = strtoi(args, 10);
-	gamma, args = strtof(args);
+	gamma, args = strtod(args);
 	runs, args = strtoi(args, 10);
 
 	return (Lx, Ly, alpha, gamma, runs);
