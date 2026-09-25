@@ -94,31 +94,54 @@ pip install -r requirements.txt
 
 Generate random states:
 ```
-python auxiliary/generate_states.py
+python auxiliary/generate_states.py <Lx> <Ly> <alpha> <gamma> <runs> <seed>
 ```
 
 Either generate random RBM data or use pre-trained data:
 ```
-python auxiliary/generate_RBM.py
-python auxiliary/reformat_Ising.py
+python auxiliary/generate_RBM.py <Lx> <Ly> <alpha> <gamma> <runs> <seed>
+python auxiliary/reformat_Ising.py <Lx> <Ly> <alpha> <gamma> <runs> <seed>
 ```
 
 ## Running files
 
 ### Python
 ```
-python eloc.py
+python eloc.py <Lx> <Ly> <alpha> <gamma> <runs> <seed>
 ```
 
 ### Sac
 Running sac sequentially:
 ```
 sac2c eloc.sac
-./a.out
+./a.out <Lx> <Ly> <alpha> <gamma> <runs> <seed>
 ```
 
 Running sac multi-threaded using $N$ threads:
 ```
 sac2c -tmt_pth eloc.sac
-./a.out -mt N
+./a.out <Lx> <Ly> <alpha> <gamma> <runs> <seed> -mt N
 ```
+
+## Running files using Slurm
+To run multiple files using different configurations, a batch jobs can by running ``./setup.sh``.
+
+Even positional arguments correspond with values for $Lx$ and odd arguments with $Ly$.
+
+To specify generic experiment variables, the following arguments can be given:
+
+* ``-a=<alpha>`` to set alpha
+* ``-g=<gamma>`` to set gamma
+* ``-n=<runs>`` to set the number of times each $E_{loc}$ is recomputed
+* ``-seed=<seed>`` to set the seed for the randomly generated states and RBM
+
+To run specific languages, the following arguments can be given:
+
+* ``-s`` for sequential sac
+* ``-smt=<threads>`` for multi-threaded sac
+* ``-p`` for python
+
+### Example
+Running the following command creates 6 total jobs, a 16x16 and 32x32 job for sequential sac, 6-threaded sac and python:
+
+``./setup.sh -s -smt=6 -p -n=500 -seed=10 16 16 32 32``

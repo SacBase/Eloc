@@ -14,7 +14,7 @@ use CommandLine: all;
 use Xoshiro: {xoshiro128p, srand128};
 use File: {File};
 use SysErr: {fail, clear};
-use String: { strcat, tos, string, sscanf, strtod, strtoi, strstr, strdrop};
+use String: { strcat, tos, string, sscanf, strtod, strtoi, strstr, strdrop, strtok};
 
 // #define M 512
 // #define N 256
@@ -43,7 +43,7 @@ int[r, d:n] oConcat (int[q, d:n] a, int[p, d:n] b) | (r == q + p){
 }
 
 // Command line functions:
-int, int, int, double, int
+int, int, int, double, int, string
 get_cl_args() {
 	args = argv();
 	i = strstr(args, " ");
@@ -53,8 +53,18 @@ get_cl_args() {
 	alpha, args = strtoi(args, 10);
 	gamma, args = strtod(args);
 	runs, args = strtoi(args, 10);
+	seed, args = strtoi(args, 10);
+	
+	id = "";
 
-	return (Lx, Ly, alpha, gamma, runs);
+	i = strstr(args, "-id ");
+	if (i != -1) {
+		args = strdrop(args, i+4);
+		args = args ++ " ";
+		id, args = strtok(args, " ");
+	}
+
+	return (Lx, Ly, alpha, gamma, runs, id);
 }
 
 // File handling functions:
@@ -189,7 +199,7 @@ eloc_lookup_table(double[N] s, int[M, 2] bonds, double[N, M] W, double[M] b, dou
  ******************************************************************************/
 
 int main() {
-	Lx, Ly, alpha, gamma, runs = get_cl_args();
+	Lx, Ly, alpha, gamma, runs, id = get_cl_args();
 	
 	N = Lx * Ly;
 	M = N * alpha;
@@ -229,7 +239,7 @@ int main() {
 	printf("average runtime: %f\n", sum(rts) / tod(runs));
     printf("summed eloc:     %f\n", tod( tots));
 
-	r_filename = "results/sac_" ++ tos(N) ++ ".csv";
+	r_filename = "results/sac" ++ id ++ "_" ++ tos(N) ++ ".csv";
 	r_file = open_file_w(r_filename);
 	write_results(r_file, rts);
 	

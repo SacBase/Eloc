@@ -15,8 +15,8 @@ def toString(arr):
 
 if __name__ == "__main__":
 
-	langs = ["sac", "python"]
-	sizes = [256]
+	langs = ["sac", "sac6", "sac12", "python"]
+	sizes = [256, 1024, 4096]
 	labels = []
 	nruns = 1000
 	q = 0.025
